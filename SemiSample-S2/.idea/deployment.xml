@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PublishConfigData" autoUpload="On explicit save action" serverName="SemiSample" exclude=".svn;.cvs;.idea;.DS_Store;.git;.hg;.gitignore;*.pyc" filePermissions="420">
+    <serverData>
+      <paths name="SemiSample">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/cil/hzsun/sentence_generation/SemiSample" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+          <excludedPaths>
+            <excludedPath local="true" path="$PROJECT_DIR$/.git" />
+            <excludedPath local="true" path="$PROJECT_DIR$/readme" />
+            <excludedPath local="true" path="$PROJECT_DIR$/gradient_test.py" />
+            <excludedPath local="true" path="$PROJECT_DIR$/local_test.py" />
+            <excludedPath local="true" path="$PROJECT_DIR$/model_test.py" />
+            <excludedPath local="true" path="$PROJECT_DIR$/sample_multinomial_test.py" />
+          </excludedPaths>
+        </serverdata>
+      </paths>
+    </serverData>
+    <option name="myAutoUpload" value="ON_EXPLICIT_SAVE" />
+  </component>
+</project>

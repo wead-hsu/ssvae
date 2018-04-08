@@ -1,0 +1,12 @@
+*.pyc
+
+local_test.*
+gradient_test.*
+sample_multinomial_test.*
+model_test.*
+*.docx
+*.doc
+*.
+deep_model-const_ebd.py
+ana
+nlp-metrics

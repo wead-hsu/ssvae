@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="b0ae4a2d-7b7b-4bdd-b76c-deae594b6e55" name="SemiSample" url="http://localhost">
+        <fileTransfer host="162.105.71.5" port="3000" accessType="SFTP" password="dfc9dfc3dfc6dfcbdfdedfdadfc1dfdf" username="cil">
+          <advancedOptions>
+            <advancedOptions controlEncoding="UTF-8" />
+          </advancedOptions>
+          <option name="port" value="3000" />
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

@@ -399,7 +399,7 @@ class DeepModel():
         train_f = theano.function(inputs=train_input, outputs=train_output, updates=updates, name='train_expectation')
         return train_f
 
-    def train_sample_function(self):
+    def train_sample_function(self, ew=1.0):
         '''
         unlabeled data train with sample
         '''
@@ -429,11 +429,9 @@ class DeepModel():
                                                         sym_mask_u, sampled_label],
                                                         dev_stage=False)
 
-        # length normalization for unlabel
-        loss_rec_u = loss_rec_u / T.sum(sym_mask_u, axis=1)
-
         # use baseline
-        const_Lxy = loss_rec_u + sym_klw*loss_kl_u
+        # length normalization for unlabel
+        const_Lxy = loss_rec_u / T.sum(sym_mask_u, axis=1) + sym_klw*loss_kl_u
         if self.use_baseline:
             baselines_u = self._get_baselines([sym_sents_u, enc_sents_u, sym_mask_u])
             const_Lxy -= baselines_u
@@ -441,7 +439,7 @@ class DeepModel():
         # gradients, see supplementary files for detail
         all_params, params_e, params_w, params_phi, params_theta = self.get_params(tag='all'), \
         self.get_params(tag='e'), self.get_params(tag='c'), self.get_params(tag='i'), self.get_params(tag='g')
-        total_cost_directly = -T.sum(loss_entropy) *0 + T.sum(loss_rec + sym_klw * loss_kl)
+        total_cost_directly = -T.sum(loss_entropy) * ew + T.sum(loss_rec + sym_klw * loss_kl)
         total_cost_directly += self.alpha * T.sum(loss_class) * num_all / num_l
         total_cost_directly /= num_all
         all_grads = theano.grad(total_cost_directly, all_params)
@@ -469,7 +467,7 @@ class DeepModel():
         all_grads = [T.clip(g, -self.grad_clipping, self.grad_clipping) for g in all_grads]
         all_grads = total_norm_constraint(all_grads, max_norm=self.max_norm)
         updates = adam(all_grads, all_params, self.lr)
-        update_baseline = {self.b: 0.99 * self.b + 0.01 * T.mean(loss_rec_u)}
+        update_baseline = {self.b: 0.9 * self.b + 0.1 * T.mean(loss_rec_u)}
         updates.update(update_baseline)
         train_input = [sym_sents, sym_mask, sym_label, sym_sents_u, sym_mask_u, sym_klw]
 

@@ -1,6 +1,6 @@
 import sys
 import numpy as np
-from models.deep_model_norm_baseline import *
+from deep_model import *
 from utils.helper_functions import *
 import theano
 import lasagne
@@ -11,38 +11,38 @@ theano.exception_verbosity = 'high'
 
 def init_config():
     params = {}
-    params['data'] = 'AG'   #'IMDB' 'AG', etc
+    params['data'] = 'IMDB'   #'IMDB' 'AG', etc
     params['model'] = 'SemiSample M1+M2'
-    params['data_path'] = '../data/ag.semi.8k'
-    params['webd_path'] = '../data/ag.23k.glove.300'
+    params['data_path'] = '../data/imdb.semi.20000'
+    params['webd_path'] = '../data/imdb.20k.glove.300'
     params['exp_time'] = str(datetime.now().strftime('%Y%m%d-%H%M'))
-    params['save_dir'] = '../results/SemiSampleS1-'+params['exp_time']
+    params['save_dir'] = '../results/SemiSample-S2-'+params['exp_time']
 
     params['num_epoches'] = 100
     params['klw_begin_from'] = 2
-    params['annealing_center'] = 75
+    params['annealing_center'] = 75.0
     params['annealing_width'] = 12.0  # *7
 
-    params['lr'] = 0.0004
-    params['ew'] = 0.0
-    params['drop_out'] = 0.6
-    params['alpha'] = 1.5
-    params['keep_rate'] = 0.95  # >1 keep all <0 input-less model
+    params['lr'] = 0.0005
+    params['drop_out'] = 0.5
+    params['alpha'] = 2.0
+    params['keep_rate'] = 0.5  # >1 keep all <0 input-less model
+    params['entropy_weight'] = 0.0  # 0 is better for classifier?
     params['num_batches_train'] = 1600
     params['dim_z'] = 300
-    params['dim_y'] = 4
+    params['dim_y'] = 2
     params['num_units'] = 512
     params['word_ebd_dims'] = 300
 
-    params['use_mean_lstm'] = False
-    params['sample_unlabel'] = True
-    params['use_baseline'] = True
+    params['use_mean_lstm'] = True
+    params['sample_unlabel'] = False
+    params['use_baseline'] = False
 
     params['use_glove'] = True
-    params['weight_load_path'] = None
+    params['weight_load_path'] = '../results/SemiSample-S2-20180331-2132/37.weights'
     params['pretrain_load_path'] = None
+    #params['pretrain_load_path'] = '../data/pretrain_ag.pkl'
     #params['pretrain_load_path'] = '../data/pretrain_lm2.pkl'
-    params['pretrain_load_path'] = '../data/pretrain_ag.pkl'
 
     params['labeled_data_cut'] = 600
     params['unlabeled_data_cut'] = 400
@@ -55,7 +55,7 @@ def load_data(params):
     data_path = params['data_path']
     import cPickle
     print "Loading data from " + data_path
-    data =cPickle.load(open(data_path, "r"))
+    data = cPickle.load(open(data_path, "r"))
 
     wdict = data['wdict']
     s_l_train = data['s_l_train']
@@ -93,7 +93,7 @@ print "================= Modeling ==================="
 model = DeepModel(num_units=params['num_units'], dim_z=params['dim_z'], word_ebd_dims=params['word_ebd_dims'],
                   word_dict_size=params['word_dict_size'], dim_y=params['dim_y'], drop_out=params['drop_out'],
                   keep_rate=params['keep_rate'], use_baseline=params['use_baseline'], alpha=params['alpha'],
-                  lr=params['lr'])
+                  entropy_weight=params['entropy_weight'], lr=params['lr'])
 
 if params['use_glove']:
     print 'Using glove...'
@@ -129,7 +129,7 @@ batchitertest = BatchIterator(params['num_test'], params['dev_batch_size'], data
 print "================= Compiling ====================== "
 print params
 if params['sample_unlabel']:
-    tf = model.train_sample_function(ew=params['ew'])
+    tf = model.train_n_samples_function(n_samples=2)
 else:
     tf = model.train_expectation_function()
 ef = model.test_function()
@@ -163,12 +163,12 @@ for epoch in range( params['num_epoches']):
 
         outs = tf(s, m, y, s_u, m_u, np.float32(kl_w))
         cost, loss_recons, loss_recons_u, loss_kl, loss_kl_u, loss_classifier,\
-                                    loss_entropy_u, batch_ppl, batch_ppl_u, acc, baseline = outs
+                                    loss_entropy_u, batch_ppl, batch_ppl_u, acc = outs
         tol_cost, tol_acc = tol_cost + cost, tol_acc + acc
         out_str = "Train %d Batch %d:\nLOSS:%f KL:%f KL_U:%f R:%f R_U:%f CAT:%f\n " \
-                "EPY:%f PPL:%f PPL_U:%f kl_w:%f ACC:%f BASE:%f" \
+                  "EPY:%f PPL:%f PPL_U:%f kl_w:%f ACC:%f" \
                   %(epoch, i, cost, loss_kl, loss_kl_u, loss_recons, loss_recons_u, loss_classifier,
-                  loss_entropy_u, batch_ppl, batch_ppl_u, kl_w, tol_acc/float(i+1), baseline)
+                  loss_entropy_u, batch_ppl, batch_ppl_u, kl_w, tol_acc/float(i+1))
         print out_str
         log_write_line(log_file_path,out_str, "a")
     out_str = "Train Epoch %d: LOSS:%f ACC:%f Time:%f " \
