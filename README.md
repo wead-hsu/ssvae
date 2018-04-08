@@ -14,7 +14,7 @@ The code is a little rebundant, as the original model is proposed with auxiliary
 
 #### Requirements:
 
-Package requirements:
+- Package requirements:
 	- Theano == 0.8
 	- Lasagne == 0.2.dev1
 	- CUDA == 8.0
